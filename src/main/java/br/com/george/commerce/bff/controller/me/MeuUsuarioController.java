@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** O Angular pergunta ao abrir o site: 200 com os dados, ou 401 se ninguém está logado. */
+/** Dados do usuário logado (rota protegida: 401 sem sessão). O Angular usa /api/auth/session ao abrir o site. */
 @RestController
 public class MeuUsuarioController {
 
