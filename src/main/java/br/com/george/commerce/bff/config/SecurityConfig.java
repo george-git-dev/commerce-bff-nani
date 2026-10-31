@@ -19,7 +19,8 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
  * Segurança do BFF:
  * - login OIDC no Keycloak (código de autorização + PKCE); tokens só na sessão do servidor;
  * - o navegador recebe apenas o cookie NANI_SESSION (HttpOnly) e o XSRF-TOKEN;
- * - /api/** sem sessão responde 401 (o Angular decide o que mostrar), nunca redireciona.
+ * - /api/** vai para a commerce-api (com o token da sessão, ou sem token para visitante);
+ *   quem autoriza é a API. Rotas do BFF que exigem login respondem 401, nunca redirecionam.
  */
 @Configuration
 @EnableWebSecurity
@@ -30,7 +31,9 @@ public class SecurityConfig {
             NaniAuthProperties auth) throws Exception {
         http
             .authorizeHttpRequests(requests -> requests
-                .requestMatchers("/actuator/health", "/api/auth/**").permitAll()
+                // /api/auth/**: login, cadastro e sessão. O resto de /api/** é da commerce-api, que decide
+                // o que é público (catálogo) e o que exige token. CSRF continua valendo para escrita.
+                .requestMatchers("/actuator/health", "/api/**").permitAll()
                 .anyRequest().authenticated())
             .oauth2Login(login -> login
                 .authorizationEndpoint(endpoint -> endpoint

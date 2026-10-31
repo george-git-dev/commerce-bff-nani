@@ -9,7 +9,8 @@ Orienta o Claude ao trabalhar neste repositório.
 - **Fala só com o Keycloak (login) e com a `commerce-api`.** Nunca com a `commerce-payments`.
 - **Sem regra de negócio.** Repassa e monta respostas para as telas; quem decide é a `commerce-api`.
 - **Token nunca vai para o navegador.** Sessão **em memória** (decisão A1: tokens nunca em disco; Redis só quando houver mais de uma cópia); **o BFF não tem banco**; cookie `NANI_SESSION` HttpOnly; CSRF por cookie `XSRF-TOKEN` + cabeçalho `X-XSRF-TOKEN`.
-- `/api/**` sem sessão responde **401**, nunca redireciona (o Angular decide).
+- `/api/auth/**` é do BFF (entrar, criar conta, sair, sessão). **O resto de `/api/**` é repassado à `commerce-api`** sem o prefixo (`CommerceApiProxyController`), com o access token da sessão (renovado sozinho; um por sessão de cada vez) ou sem token para visitante. Quem autoriza é a API. Sessão vencida no Keycloak → 401; API fora do ar → 502. Nunca redireciona (o Angular decide).
+- Tokens guardados **na sessão** (`HttpSessionOAuth2AuthorizedClientRepository`): somem no logout.
 - Formatos e nomes seguem o front (`commerce-web`): ele manda.
 
 ## Convenções
@@ -19,7 +20,7 @@ Pacote base `br.com.george.commerce.bff`, **por camada, como o `commerce-api`**:
 - `config/`: segurança, cliente OIDC, propriedades
 - `security/`: peças do login (PKCE/cadastro, para onde voltar, logout, CSRF)
 - `controller/`: só recebe e delega; nomes e pacotes em português, por público (`publico/`, `me/`, `admin/`)
-- `client/`: clientes HTTP para a `commerce-api` (a partir da B3)
+- `client/`: clientes HTTP para a `commerce-api` (`CommerceApiClient`: repasse com lista fechada de cabeçalhos e prazos curtos)
 - `service/`: interface + `Impl`; junta e repassa o que vem do `client` (sem regra de negócio)
 - `dto/`: records de request/response · `mapper/`: conversões · `exception/`: `GlobalExceptionHandler` com `ProblemDetail`
 

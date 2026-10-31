@@ -5,6 +5,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
@@ -35,13 +36,19 @@ class BffSecurityIntegrationTest {
     }
 
     @Test
-    void shouldAnswer401WhenNobodyIsLoggedIn() throws Exception {
-        mvc.perform(get("/api/me")).andExpect(status().isUnauthorized());
+    void sessionShouldAnswer200WithoutUserWhenNobodyIsLoggedIn() throws Exception {
+        // Visitante anônimo não é erro: 200, sem cache e já com o cookie do CSRF para o "Sair" depois.
+        mvc.perform(get("/api/auth/session"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authenticated").value(false))
+                .andExpect(jsonPath("$.user").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")))
+                .andExpect(cookie().exists("XSRF-TOKEN"));
     }
 
     @Test
     void shouldReturnNameRolesAndPermissionsOfTheLoggedUser() throws Exception {
-        mvc.perform(get("/api/me").with(oidcLogin().idToken(token -> token
+        mvc.perform(get("/api/auth/session").with(oidcLogin().idToken(token -> token
                         .subject("user-123")
                         .claim("given_name", "Ana")
                         .claim("family_name", "Souza")
@@ -49,12 +56,13 @@ class BffSecurityIntegrationTest {
                         .claim("roles", List.of("ROLE_CUSTOMER", "default-roles-nani", "offline_access"))
                         .claim("permissions", List.of("shop:checkout")))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("user-123"))
-                .andExpect(jsonPath("$.name").value("Ana Souza"))
-                .andExpect(jsonPath("$.email").value("ana@email.com"))
-                .andExpect(jsonPath("$.roles.length()").value(1))
-                .andExpect(jsonPath("$.roles[0]").value("ROLE_CUSTOMER"))
-                .andExpect(jsonPath("$.permissions[0]").value("shop:checkout"));
+                .andExpect(jsonPath("$.authenticated").value(true))
+                .andExpect(jsonPath("$.user.id").value("user-123"))
+                .andExpect(jsonPath("$.user.name").value("Ana Souza"))
+                .andExpect(jsonPath("$.user.email").value("ana@email.com"))
+                .andExpect(jsonPath("$.user.roles.length()").value(1))
+                .andExpect(jsonPath("$.user.roles[0]").value("ROLE_CUSTOMER"))
+                .andExpect(jsonPath("$.user.permissions[0]").value("shop:checkout"));
     }
 
     @Test
