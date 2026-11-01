@@ -65,6 +65,21 @@ paths:
       responses:
         "302":
           description: Vai para a tela do Keycloak
+  /api/auth/password:
+    get:
+      tags:
+      - Público - Autenticação
+      summary: Trocar senha (abre a tela do Keycloak e volta para returnTo)
+      operationId: password
+      parameters:
+      - name: returnTo
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "302":
+          description: Vai para a tela do Keycloak
   /api/auth/login:
     get:
       tags:

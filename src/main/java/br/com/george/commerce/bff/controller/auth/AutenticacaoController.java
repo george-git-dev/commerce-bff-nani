@@ -56,6 +56,13 @@ public class AutenticacaoController {
      * Tem alguém logado? O Angular pergunta ao abrir o site. Visitante anônimo não é erro:
      * responde 200 com authenticated=false (o user chega null), e 401 fica só para rota protegida.
      */
+    @Operation(summary = "Trocar senha (abre a tela do Keycloak e volta para returnTo)")
+    @GetMapping("/password")
+    public ResponseEntity<Void> password(@RequestParam(required = false) String returnTo, HttpSession session) {
+        ReturnTo.remember(session, returnTo);
+        return redirect(AUTHORIZATION + "?kc_action=UPDATE_PASSWORD");
+    }
+
     @Operation(summary = "Quem está logado (sempre 200)")
     @GetMapping("/session")
     public SessaoResponse session(@AuthenticationPrincipal OidcUser user) {

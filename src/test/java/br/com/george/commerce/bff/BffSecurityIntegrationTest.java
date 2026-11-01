@@ -91,6 +91,23 @@ class BffSecurityIntegrationTest {
     }
 
     @Test
+    void changePasswordShouldGoToTheKeycloakPasswordScreenAndComeBack() throws Exception {
+        mvc.perform(get("/api/auth/password").param("returnTo", "/minha-conta/dados"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string("Location", "/oauth2/authorization/nani?kc_action=UPDATE_PASSWORD"))
+                .andExpect(request().sessionAttribute("nani.returnTo", "/minha-conta/dados"));
+
+        String keycloak = mvc.perform(get("/oauth2/authorization/nani").param("kc_action", "UPDATE_PASSWORD"))
+                .andReturn().getResponse().getHeader("Location");
+        assertThat(keycloak).contains("kc_action=UPDATE_PASSWORD", "code_challenge=");
+
+        // Outra ação do Keycloak (ex.: apagar a conta) não passa: só a lista do resolver.
+        String other = mvc.perform(get("/oauth2/authorization/nani").param("kc_action", "delete_account"))
+                .andReturn().getResponse().getHeader("Location");
+        assertThat(other).doesNotContain("kc_action");
+    }
+
+    @Test
     void loginShouldIgnoreReturnToOutsideTheSite() throws Exception {
         mvc.perform(get("/api/auth/login").param("returnTo", "https://evil.com"))
                 .andExpect(request().sessionAttribute("nani.returnTo", "/"));
