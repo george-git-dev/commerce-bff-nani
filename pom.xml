@@ -20,6 +20,8 @@
 
     <properties>
         <java.version>21</java.version>
+        <springdoc.version>2.8.13</springdoc.version>
+        <springdoc.maven.plugin.version>1.5</springdoc.maven.plugin.version>
     </properties>
 
     <dependencies>
@@ -46,6 +48,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+        <!-- Swagger: documentação das rotas do BFF (desligado em produção: SWAGGER_ENABLED=false) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
 
         <!-- Testes -->
         <dependency>
@@ -63,9 +71,60 @@
 
     <build>
         <plugins>
+            <!-- Gera docs/swagger.yaml no build (igual à commerce-api): sobe o BFF numa porta própria,
+                 baixa a documentação e desliga. Não precisa do Keycloak nem do .env. -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>start-app-for-openapi</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>
+                                <argument>--server.port=8095</argument>
+                                <argument>--nani.auth.client-secret=somente-para-gerar-o-swagger</argument>
+                            </arguments>
+                            <!-- Outra porta de controle que a da commerce-api (9001): os dois builds podem rodar juntos. -->
+                            <jmxPort>9002</jmxPort>
+                            <wait>1000</wait>
+                            <maxAttempts>120</maxAttempts>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop-app-for-openapi</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                        <configuration>
+                            <jmxPort>9002</jmxPort>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-maven-plugin</artifactId>
+                <version>${springdoc.maven.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-openapi-docs</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <apiDocsUrl>http://localhost:8095/v3/api-docs.yaml</apiDocsUrl>
+                    <outputFileName>swagger.yaml</outputFileName>
+                    <outputDir>${project.basedir}/docs</outputDir>
+                </configuration>
             </plugin>
         </plugins>
     </build>

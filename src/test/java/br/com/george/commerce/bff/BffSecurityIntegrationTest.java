@@ -66,6 +66,23 @@ class BffSecurityIntegrationTest {
     }
 
     @Test
+    void undeclaredRoutesShouldNeverReachTheApi() throws Exception {
+        mvc.perform(get("/api/products")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/products").with(oidcLogin()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.detail").value("Não encontramos o que você procurou."));
+    }
+
+    @Test
+    void swaggerShouldDescribeTheBffRoutes() throws Exception {
+        mvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.info.title").value("BFF da Nani Perfumes"))
+                .andExpect(jsonPath("$.paths['/api/auth/session']").exists());
+    }
+
+    @Test
     void loginShouldRememberWhereToReturnAndGoToKeycloak() throws Exception {
         mvc.perform(get("/api/auth/login").param("returnTo", "/minha-conta"))
                 .andExpect(status().is3xxRedirection())

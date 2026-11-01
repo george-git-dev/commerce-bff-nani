@@ -1,10 +1,14 @@
-package br.com.george.commerce.bff.controller.publico;
+package br.com.george.commerce.bff.controller.auth;
 
 import br.com.george.commerce.bff.config.ClientRegistrationConfig;
 import br.com.george.commerce.bff.dto.SessaoResponse;
 import br.com.george.commerce.bff.mapper.MeMapper;
 import br.com.george.commerce.bff.security.NaniAuthorizationRequestResolver;
 import br.com.george.commerce.bff.security.ReturnTo;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -19,6 +23,8 @@ import org.springframework.web.servlet.view.RedirectView;
  * inteira: guardam para onde voltar e mandam para o Keycloak. "Sair" é o POST
  * /api/auth/logout do Spring Security. A sessão é perguntada por XHR, sempre com 200.
  */
+@Tag(name = "Público - Autenticação", description = "Entrar, criar conta e sessão. Sair: POST /api/auth/logout (com X-XSRF-TOKEN), "
+        + "que devolve { redirectUrl } para encerrar também no Keycloak.")
 @RestController
 @RequestMapping("/api/auth")
 public class AutenticacaoController {
@@ -32,6 +38,9 @@ public class AutenticacaoController {
     }
 
     /** Entrar: GET /api/auth/login?returnTo=/minha-conta */
+    @Operation(summary = "Entrar", description = "Navegação de página inteira: vai para a tela de login da Nani e volta "
+            + "para returnTo (caminho interno; outro valor é ignorado). Não use pelo Try it out.")
+    @ApiResponse(responseCode = "302", description = "Redireciona para o Keycloak", content = @Content)
     @GetMapping("/login")
     public RedirectView login(@RequestParam(required = false) String returnTo, HttpSession session) {
         ReturnTo.remember(session, returnTo);
@@ -39,6 +48,8 @@ public class AutenticacaoController {
     }
 
     /** Criar conta: abre direto o cadastro do Keycloak. */
+    @Operation(summary = "Criar conta", description = "Como o entrar, mas abre direto o cadastro do Keycloak.")
+    @ApiResponse(responseCode = "302", description = "Redireciona para o Keycloak", content = @Content)
     @GetMapping("/register")
     public RedirectView register(@RequestParam(required = false) String returnTo, HttpSession session) {
         ReturnTo.remember(session, returnTo);
@@ -49,6 +60,8 @@ public class AutenticacaoController {
      * Tem alguém logado? O Angular pergunta ao abrir o site. Visitante anônimo não é erro:
      * responde 200 com authenticated=false (o user chega null), e 401 fica só para rota protegida.
      */
+    @Operation(summary = "Quem está logado", description = "Sempre 200: { authenticated: false, user: null } para "
+            + "visitante, ou o usuário com papéis e permissões. Também entrega o cookie XSRF-TOKEN.")
     @GetMapping("/session")
     public SessaoResponse session(@AuthenticationPrincipal OidcUser user) {
         return user == null ? SessaoResponse.anonima() : SessaoResponse.de(mapper.toResponse(user));

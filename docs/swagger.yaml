@@ -1,0 +1,100 @@
+openapi: 3.1.0
+info:
+  title: BFF da Nani Perfumes
+  description: |-
+    Rotas que o site da Nani usa. Login, cadastro e sessão ficam aqui; o resto chama a commerce-api com o token da sessão. Erros no formato ProblemDetail: status, code e detail em português (os da commerce-api passam como vieram).
+    Escrita (POST/PUT/PATCH/DELETE) exige o cabeçalho X-XSRF-TOKEN com o valor do cookie XSRF-TOKEN.
+  version: "1.0"
+servers:
+- url: http://localhost:4200
+  description: Pelo site (proxy do Angular)
+- url: http://localhost:8090
+  description: BFF direto
+security:
+- sessao: []
+tags:
+- name: Público - Autenticação
+  description: "Entrar, criar conta e sessão. Sair: POST /api/auth/logout (com X-XSRF-TOKEN),\
+    \ que devolve { redirectUrl } para encerrar também no Keycloak."
+paths:
+  /api/auth/session:
+    get:
+      tags:
+      - Público - Autenticação
+      summary: Quem está logado
+      description: "Sempre 200: { authenticated: false, user: null } para visitante,\
+        \ ou o usuário com papéis e permissões. Também entrega o cookie XSRF-TOKEN."
+      operationId: session
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SessaoResponse"
+  /api/auth/register:
+    get:
+      tags:
+      - Público - Autenticação
+      summary: Criar conta
+      description: "Como o entrar, mas abre direto o cadastro do Keycloak."
+      operationId: register
+      parameters:
+      - name: returnTo
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "302":
+          description: Redireciona para o Keycloak
+  /api/auth/login:
+    get:
+      tags:
+      - Público - Autenticação
+      summary: Entrar
+      description: "Navegação de página inteira: vai para a tela de login da Nani\
+        \ e volta para returnTo (caminho interno; outro valor é ignorado). Não use\
+        \ pelo Try it out."
+      operationId: login
+      parameters:
+      - name: returnTo
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "302":
+          description: Redireciona para o Keycloak
+components:
+  schemas:
+    MeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    SessaoResponse:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        user:
+          $ref: "#/components/schemas/MeResponse"
+  securitySchemes:
+    sessao:
+      type: apiKey
+      description: "Cookie de sessão HttpOnly, criado ao entrar pelo site"
+      name: NANI_SESSION
+      in: cookie

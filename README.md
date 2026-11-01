@@ -4,7 +4,8 @@ BFF (*backend for frontend*) da **Nani Perfumes**: a única porta do site (`comm
 
 - Faz o login no Keycloak (`commerce-auth`, realm `nani`) com código de autorização + PKCE.
 - **Guarda os tokens no servidor, só na memória** (nunca em disco nem em backup). O navegador recebe só o cookie `NANI_SESSION` (HttpOnly) e o `XSRF-TOKEN` (proteção CSRF). Reiniciar o BFF encerra as sessões (deploy fora do horário comercial); o Keycloak religa o cliente sem pedir senha. Mais de uma cópia do BFF → Redis (ver pendência A1).
-- Repassa as chamadas do site para a `commerce-api` com o token da sessão. Sem regra de negócio.
+- Uma rota por necessidade do site, chamando a `commerce-api` com o token da sessão. Sem regra de negócio.
+- Swagger: `http://localhost:8090/swagger-ui.html` (com o BFF rodando) e `docs/swagger.yaml`, gerado a cada `./mvnw install`/`verify` — rodar sempre que mudar alguma rota ou DTO.
 
 ## Rodar na sua máquina
 
@@ -23,7 +24,6 @@ O site acessa o BFF pelo proxy do `ng serve` (tudo em `http://localhost:4200`, c
 | `GET /api/auth/register?returnTo=/caminho` | Criar conta: abre direto o cadastro |
 | `POST /api/auth/logout` (com cabeçalho CSRF) | Sair: apaga a sessão e devolve `{ "redirectUrl": ... }` para sair também do Keycloak |
 | `GET /api/auth/session` | Quem está logado: `{authenticated, user}`, sempre 200 |
-| qualquer outro `/api/**` | Repassado à `commerce-api` sem o `/api` (ex.: `/api/products` → `/products`), com o token da sessão. A `commerce-api` precisa estar rodando (porta 8080) |
 | `GET /actuator/health` | Saúde |
 
 ## Testes
