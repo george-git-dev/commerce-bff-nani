@@ -14,16 +14,32 @@ security:
 - sessao: []
 tags:
 - name: Público - Autenticação
-  description: "Entrar, criar conta e sessão. Sair: POST /api/auth/logout (com X-XSRF-TOKEN),\
-    \ que devolve { redirectUrl } para encerrar também no Keycloak."
+  description: "Entrar, criar conta e sessão. Sair: POST /api/auth/logout."
+- name: Área do Cliente - Minha Conta
+  description: Dados da conta do cliente logado.
 paths:
+  /api/me/profile:
+    get:
+      tags:
+      - Área do Cliente - Minha Conta
+      summary: Dados pessoais
+      operationId: perfil
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PerfilResponse"
+        "401":
+          description: Sem sessão (code SESSION_EXPIRED)
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
   /api/auth/session:
     get:
       tags:
       - Público - Autenticação
-      summary: Quem está logado
-      description: "Sempre 200: { authenticated: false, user: null } para visitante,\
-        \ ou o usuário com papéis e permissões. Também entrega o cookie XSRF-TOKEN."
+      summary: Quem está logado (sempre 200)
       operationId: session
       responses:
         "200":
@@ -32,12 +48,13 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/SessaoResponse"
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
   /api/auth/register:
     get:
       tags:
       - Público - Autenticação
-      summary: Criar conta
-      description: "Como o entrar, mas abre direto o cadastro do Keycloak."
+      summary: Criar conta (abre o cadastro do Keycloak)
       operationId: register
       parameters:
       - name: returnTo
@@ -47,15 +64,12 @@ paths:
           type: string
       responses:
         "302":
-          description: Redireciona para o Keycloak
+          description: Vai para a tela do Keycloak
   /api/auth/login:
     get:
       tags:
       - Público - Autenticação
-      summary: Entrar
-      description: "Navegação de página inteira: vai para a tela de login da Nani\
-        \ e volta para returnTo (caminho interno; outro valor é ignorado). Não use\
-        \ pelo Try it out."
+      summary: Entrar (vai para o Keycloak e volta para returnTo)
       operationId: login
       parameters:
       - name: returnTo
@@ -65,9 +79,20 @@ paths:
           type: string
       responses:
         "302":
-          description: Redireciona para o Keycloak
+          description: Vai para a tela do Keycloak
 components:
   schemas:
+    PerfilResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        cpf:
+          type: string
+        phone:
+          type: string
     MeResponse:
       type: object
       properties:

@@ -3,9 +3,12 @@ package br.com.george.commerce.bff.config;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -39,5 +42,26 @@ public class SwaggerConfig {
                         .in(SecurityScheme.In.COOKIE)
                         .name("NANI_SESSION")
                         .description("Cookie de sessão HttpOnly, criado ao entrar pelo site")));
+    }
+
+    /**
+     * Respostas que valem para todas as rotas, num lugar só (os controllers ficam só com o resumo):
+     * erros do próprio BFF e o 302 das rotas que levam ao Keycloak.
+     */
+    @Bean
+    OpenApiCustomizer respostasPadrao() {
+        return openApi -> openApi.getPaths().forEach((path, item) -> item.readOperations().forEach(operation -> {
+            ApiResponses responses = operation.getResponses();
+            if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) {
+                responses.clear();
+                responses.addApiResponse("302", new ApiResponse().description("Vai para a tela do Keycloak"));
+                return;
+            }
+            if (!path.startsWith("/api/auth/")) {
+                responses.addApiResponse("401", new ApiResponse().description("Sem sessão (code SESSION_EXPIRED)"));
+            }
+            responses.addApiResponse("502", new ApiResponse()
+                    .description("commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)"));
+        }));
     }
 }
