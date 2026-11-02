@@ -38,7 +38,7 @@ import org.springframework.web.context.WebApplicationContext;
  * GET /api/me/profile contra uma commerce-api falsa de verdade (servidor HTTP do próprio Java).
  * O token da sessão decide o que a API falsa responde.
  */
-@SpringBootTest(properties = {"nani.auth.client-secret=segredo-de-teste", "nani.api.read-timeout=500ms"})
+@SpringBootTest(properties = {"nani.auth.client-secret=segredo-de-teste", "nani.api.read-timeout=2s"})
 class MeuPerfilIntegrationTest {
 
     /** O que a API falsa recebeu por último. */
@@ -187,7 +187,7 @@ class MeuPerfilIntegrationTest {
 
     private static void sleep() {
         try {
-            Thread.sleep(1500);
+            Thread.sleep(3000);
         } catch (InterruptedException interrupted) {
             Thread.currentThread().interrupt();
         }

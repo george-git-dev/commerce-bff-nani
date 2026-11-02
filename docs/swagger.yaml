@@ -87,6 +87,21 @@ paths:
       responses:
         "302":
           description: Vai para a tela do Keycloak
+  /api/auth/profile:
+    get:
+      tags:
+      - Público - Autenticação
+      summary: Alterar nome (abre a tela do Keycloak e volta para returnTo)
+      operationId: profile
+      parameters:
+      - name: returnTo
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "302":
+          description: Vai para a tela do Keycloak
   /api/auth/password:
     get:
       tags:

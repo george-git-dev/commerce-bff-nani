@@ -63,6 +63,13 @@ public class AutenticacaoController {
         return redirect(AUTHORIZATION + "?kc_action=UPDATE_PASSWORD");
     }
 
+    @Operation(summary = "Alterar nome (abre a tela do Keycloak e volta para returnTo)")
+    @GetMapping("/profile")
+    public ResponseEntity<Void> profile(@RequestParam(required = false) String returnTo, HttpSession session) {
+        ReturnTo.remember(session, returnTo);
+        return redirect(AUTHORIZATION + "?kc_action=UPDATE_PROFILE");
+    }
+
     @Operation(summary = "Quem está logado (sempre 200)")
     @GetMapping("/session")
     public ResponseEntity<SessaoResponse> session(@AuthenticationPrincipal OidcUser user) {

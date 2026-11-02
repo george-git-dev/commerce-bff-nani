@@ -52,7 +52,8 @@ public class SwaggerConfig {
     OpenApiCustomizer respostasPadrao() {
         return openApi -> openApi.getPaths().forEach((path, item) -> item.readOperations().forEach(operation -> {
             ApiResponses responses = operation.getResponses();
-            if (path.equals("/api/auth/login") || path.equals("/api/auth/register") || path.equals("/api/auth/password")) {
+            if (path.equals("/api/auth/login") || path.equals("/api/auth/register") || path.equals("/api/auth/password")
+                    || path.equals("/api/auth/profile")) {
                 responses.clear();
                 responses.addApiResponse("302", new ApiResponse().description("Vai para a tela do Keycloak"));
                 return;

@@ -108,6 +108,17 @@ class BffSecurityIntegrationTest {
     }
 
     @Test
+    void editNameShouldGoToTheKeycloakProfileScreenAndComeBack() throws Exception {
+        mvc.perform(get("/api/auth/profile").param("returnTo", "/minha-conta/dados"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string("Location", "/oauth2/authorization/nani?kc_action=UPDATE_PROFILE"))
+                .andExpect(request().sessionAttribute("nani.returnTo", "/minha-conta/dados"));
+        String keycloak = mvc.perform(get("/oauth2/authorization/nani").param("kc_action", "UPDATE_PROFILE"))
+                .andReturn().getResponse().getHeader("Location");
+        assertThat(keycloak).contains("kc_action=UPDATE_PROFILE");
+    }
+
+    @Test
     void loginShouldIgnoreReturnToOutsideTheSite() throws Exception {
         mvc.perform(get("/api/auth/login").param("returnTo", "https://evil.com"))
                 .andExpect(request().sessionAttribute("nani.returnTo", "/"));

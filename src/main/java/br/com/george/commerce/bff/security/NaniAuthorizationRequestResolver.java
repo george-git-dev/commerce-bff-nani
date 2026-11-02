@@ -12,14 +12,15 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
  * Pedido de login ao Keycloak:
  * - sempre com PKCE (mesmo sendo cliente confidencial);
  * - "prompt=create" abre direto a tela de cadastro (botão "Criar conta" do site);
- * - "kc_action=UPDATE_PASSWORD" abre a troca de senha do Keycloak (Minha conta → Dados pessoais).
+ * - "kc_action=UPDATE_PASSWORD" / "UPDATE_PROFILE" abrem a troca de senha / de nome do Keycloak
+ *   (Minha conta → Dados pessoais).
  * Só repassa valores das listas abaixo — nada que venha livre da URL.
  */
 public class NaniAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
     public static final String BASE_URI = "/oauth2/authorization";
     private static final Set<String> ALLOWED_PROMPTS = Set.of("create");
-    private static final Set<String> ALLOWED_ACTIONS = Set.of("UPDATE_PASSWORD");
+    private static final Set<String> ALLOWED_ACTIONS = Set.of("UPDATE_PASSWORD", "UPDATE_PROFILE");
 
     private final DefaultOAuth2AuthorizationRequestResolver delegate;
 
