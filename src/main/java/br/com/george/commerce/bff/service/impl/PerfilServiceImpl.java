@@ -1,6 +1,8 @@
 package br.com.george.commerce.bff.service.impl;
 
 import br.com.george.commerce.bff.client.MinhaContaClient;
+import br.com.george.commerce.bff.dto.AtualizarPerfilApiRequest;
+import br.com.george.commerce.bff.dto.AtualizarPerfilRequest;
 import br.com.george.commerce.bff.dto.UsuarioApiResponse;
 import br.com.george.commerce.bff.dto.MeResponse;
 import br.com.george.commerce.bff.dto.PerfilResponse;
@@ -23,8 +25,17 @@ public class PerfilServiceImpl implements PerfilService {
     /** Nome e e-mail: o Keycloak é a fonte (é lá que o cliente edita). CPF e celular: a loja. */
     @Override
     public PerfilResponse buscar(OidcUser user) {
+        return juntar(user, minhaConta.buscarPerfil());
+    }
+
+    @Override
+    public PerfilResponse atualizar(OidcUser user, AtualizarPerfilRequest request) {
+        UsuarioApiResponse loja = minhaConta.atualizarPerfil(new AtualizarPerfilApiRequest(request.phone(), request.cpf()));
+        return juntar(user, loja);
+    }
+
+    private PerfilResponse juntar(OidcUser user, UsuarioApiResponse loja) {
         MeResponse identidade = meMapper.toResponse(user);
-        UsuarioApiResponse loja = minhaConta.buscarPerfil();
         return new PerfilResponse(identidade.name(), identidade.email(), loja.cpf(), loja.phone());
     }
 }

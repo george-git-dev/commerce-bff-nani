@@ -1,8 +1,11 @@
 package br.com.george.commerce.bff.client;
 
+import br.com.george.commerce.bff.dto.AtualizarPerfilApiRequest;
 import br.com.george.commerce.bff.dto.UsuarioApiResponse;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
+import org.springframework.web.service.annotation.PatchExchange;
 
 /**
  * Rotas de "Minha conta" na commerce-api, como HTTP Service Client do Spring (o substituto
@@ -16,4 +19,8 @@ public interface MinhaContaClient {
     /** {@code GET /me}: perfil da loja do usuário do token. */
     @GetExchange
     UsuarioApiResponse buscarPerfil();
+
+    /** {@code PATCH /me}: celular e CPF (o CPF só uma vez). */
+    @PatchExchange
+    UsuarioApiResponse atualizarPerfil(@RequestBody AtualizarPerfilApiRequest body);
 }

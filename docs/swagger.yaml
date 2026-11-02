@@ -35,6 +35,28 @@ paths:
           description: Sem sessão (code SESSION_EXPIRED)
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
+    patch:
+      tags:
+      - Área do Cliente - Minha Conta
+      summary: Salvar celular e CPF
+      operationId: atualizar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AtualizarPerfilRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PerfilResponse"
+        "401":
+          description: Sem sessão (code SESSION_EXPIRED)
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
   /api/auth/session:
     get:
       tags:
@@ -97,6 +119,13 @@ paths:
           description: Vai para a tela do Keycloak
 components:
   schemas:
+    AtualizarPerfilRequest:
+      type: object
+      properties:
+        phone:
+          type: string
+        cpf:
+          type: string
     PerfilResponse:
       type: object
       properties:

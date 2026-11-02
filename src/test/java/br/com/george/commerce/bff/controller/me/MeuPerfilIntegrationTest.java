@@ -1,10 +1,12 @@
 package br.com.george.commerce.bff.controller.me;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Client;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.OAuth2ClientRequestPostProcessor;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -39,7 +42,7 @@ import org.springframework.web.context.WebApplicationContext;
 class MeuPerfilIntegrationTest {
 
     /** O que a API falsa recebeu por último. */
-    record Received(String method, String path, String authorization, String requestId) {
+    record Received(String method, String path, String authorization, String requestId, String body) {
     }
 
     private static final AtomicReference<Received> LAST = new AtomicReference<>();
@@ -114,6 +117,34 @@ class MeuPerfilIntegrationTest {
                 .andExpect(jsonPath("$.detail").value("Não conseguimos concluir agora. Tente de novo em alguns instantes."));
     }
 
+    @Test
+    void savingShouldSendPhoneAndCpfToTheApiAndReturnTheUpdatedProfile() throws Exception {
+        mvc.perform(asAna(patch("/api/me/profile"), "token-da-ana").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"phone\":\"11987654321\",\"cpf\":null}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Ana Souza"))
+                .andExpect(jsonPath("$.phone").value("11987654321"));
+        assertThat(LAST.get().method()).isEqualTo("PATCH");
+        assertThat(LAST.get().path()).isEqualTo("/me");
+        assertThat(LAST.get().body()).contains("\"phone\":\"11987654321\"");
+    }
+
+    @Test
+    void savingShouldRequireCsrf() throws Exception {
+        mvc.perform(asAna(patch("/api/me/profile"), "token-da-ana")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"phone\":\"11987654321\"}"))
+                .andExpect(status().isForbidden());
+        assertThat(LAST.get()).isNull();
+    }
+
+    @Test
+    void apiRuleErrorOnSaveShouldReachTheFrontAsItCame() throws Exception {
+        mvc.perform(asAna(patch("/api/me/profile"), "token-cpf-em-uso").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"cpf\":\"39053344705\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CPF_IN_USE"));
+    }
+
     private static HttpServer startFakeApi() {
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
@@ -128,13 +159,16 @@ class MeuPerfilIntegrationTest {
 
     private static void answer(HttpExchange exchange) throws IOException {
         String authorization = exchange.getRequestHeaders().getFirst("Authorization");
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
         LAST.set(new Received(exchange.getRequestMethod(), exchange.getRequestURI().getPath(), authorization,
-                exchange.getRequestHeaders().getFirst("X-Request-Id")));
+                exchange.getRequestHeaders().getFirst("X-Request-Id"), body));
         switch (authorization == null ? "" : authorization) {
             case "Bearer token-lento" -> {
                 sleep();
                 send(exchange, 200, "application/json", "{}");
             }
+            case "Bearer token-cpf-em-uso" -> send(exchange, 409, "application/problem+json",
+                    "{\"status\":409,\"code\":\"CPF_IN_USE\",\"detail\":\"Este CPF já está em outra conta.\"}");
             case "Bearer token-bloqueado" -> send(exchange, 403, "application/problem+json",
                     "{\"status\":403,\"code\":\"ACCOUNT_BLOCKED\",\"detail\":\"Conta bloqueada.\"}");
             default -> send(exchange, 200, "application/json", """

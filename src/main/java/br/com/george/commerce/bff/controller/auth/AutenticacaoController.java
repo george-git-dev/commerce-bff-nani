@@ -65,8 +65,8 @@ public class AutenticacaoController {
 
     @Operation(summary = "Quem está logado (sempre 200)")
     @GetMapping("/session")
-    public SessaoResponse session(@AuthenticationPrincipal OidcUser user) {
-        return user == null ? SessaoResponse.anonima() : SessaoResponse.de(mapper.toResponse(user));
+    public ResponseEntity<SessaoResponse> session(@AuthenticationPrincipal OidcUser user) {
+        return ResponseEntity.ok(user == null ? SessaoResponse.anonima() : SessaoResponse.de(mapper.toResponse(user)));
     }
 
     /** Navegação de página inteira: 302 para a tela do Keycloak (via Spring Security). */
