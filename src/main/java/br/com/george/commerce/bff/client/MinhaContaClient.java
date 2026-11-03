@@ -1,26 +1,26 @@
 package br.com.george.commerce.bff.client;
 
+import br.com.george.commerce.bff.config.CommerceApiFeignConfig;
 import br.com.george.commerce.bff.dto.AtualizarPerfilApiRequest;
 import br.com.george.commerce.bff.dto.UsuarioApiResponse;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.service.annotation.GetExchange;
-import org.springframework.web.service.annotation.HttpExchange;
-import org.springframework.web.service.annotation.PatchExchange;
 
 /**
- * Rotas de "Minha conta" na commerce-api, como HTTP Service Client do Spring (o substituto
- * recomendado do Feign): só a interface; o Spring cria a implementação em CommerceApiClientConfig.
- * O token da sessão, o X-Request-Id e os prazos vêm do {@code commerceApiRestClient}. Erro da API
- * (4xx/5xx) sobe como {@code RestClientResponseException} e o front recebe como veio.
+ * Rotas de "Minha conta" na commerce-api. O token da sessão e o X-Request-Id entram pelo
+ * {@link CommerceApiFeignConfig}. Erro da API (4xx/5xx) sobe como {@code FeignException} e o front
+ * recebe como veio.
  */
-@HttpExchange("/me")
+@FeignClient(name = "commerce-api", url = "${nani.api.url}", configuration = CommerceApiFeignConfig.class)
 public interface MinhaContaClient {
 
     /** {@code GET /me}: perfil da loja do usuário do token. */
-    @GetExchange
+    @GetMapping("/me")
     UsuarioApiResponse buscarPerfil();
 
     /** {@code PATCH /me}: celular e CPF (o CPF só uma vez). */
-    @PatchExchange
+    @PatchMapping("/me")
     UsuarioApiResponse atualizarPerfil(@RequestBody AtualizarPerfilApiRequest body);
 }

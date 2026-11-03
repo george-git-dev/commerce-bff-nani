@@ -2,10 +2,16 @@ package br.com.george.commerce.bff.config;
 
 import java.util.Map;
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
@@ -16,6 +22,7 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
  * e o navegador usa o endereço público enquanto o BFF usa o interno.
  */
 @Configuration
+@EnableConfigurationProperties(NaniAuthProperties.class)
 public class ClientRegistrationConfig {
 
     public static final String REGISTRATION_ID = "nani";
@@ -39,5 +46,27 @@ public class ClientRegistrationConfig {
                 .providerConfigurationMetadata(Map.of("end_session_endpoint", auth.endSessionEndpoint()))
                 .build();
         return new InMemoryClientRegistrationRepository(nani);
+    }
+
+    /**
+     * Tokens guardados NA SESSÃO (A1): somem no logout e quando a sessão expira. Sem este bean,
+     * o padrão do Spring guarda num mapa em memória por usuário que sobrevive ao logout.
+     */
+    @Bean
+    OAuth2AuthorizedClientRepository authorizedClientRepository() {
+        return new HttpSessionOAuth2AuthorizedClientRepository();
+    }
+
+    /** Entrega o access token válido; perto de vencer, renova com o refresh token no Keycloak. */
+    @Bean
+    OAuth2AuthorizedClientManager authorizedClientManager(ClientRegistrationRepository registrations,
+            OAuth2AuthorizedClientRepository authorizedClients) {
+        DefaultOAuth2AuthorizedClientManager manager =
+                new DefaultOAuth2AuthorizedClientManager(registrations, authorizedClients);
+        manager.setAuthorizedClientProvider(OAuth2AuthorizedClientProviderBuilder.builder()
+                .authorizationCode()
+                .refreshToken()
+                .build());
+        return manager;
     }
 }

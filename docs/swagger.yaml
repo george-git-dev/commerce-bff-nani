@@ -15,6 +15,8 @@ security:
 tags:
 - name: Público - Autenticação
   description: "Entrar, criar conta e sessão. Sair: POST /api/auth/logout."
+- name: Público - CEP
+  description: "Endereço a partir do CEP, para preencher formulários."
 - name: Área do Cliente - Minha Conta
   description: Dados da conta do cliente logado.
 paths:
@@ -55,6 +57,27 @@ paths:
                 $ref: "#/components/schemas/PerfilResponse"
         "401":
           description: Sem sessão (code SESSION_EXPIRED)
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
+  /api/cep/{cep}:
+    get:
+      tags:
+      - Público - CEP
+      summary: Buscar endereço pelo CEP
+      operationId: buscar
+      parameters:
+      - name: cep
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CepResponse"
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
   /api/auth/session:
@@ -151,6 +174,19 @@ components:
         cpf:
           type: string
         phone:
+          type: string
+    CepResponse:
+      type: object
+      properties:
+        cep:
+          type: string
+        street:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        state:
           type: string
     MeResponse:
       type: object

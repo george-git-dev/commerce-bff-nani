@@ -11,12 +11,13 @@ import org.springframework.stereotype.Component;
 public class MeMapper {
 
     public MeResponse toResponse(OidcUser user) {
-        return new MeResponse(
-                user.getSubject(),
-                name(user),
-                user.getEmail(),
-                appRoles(user.getClaimAsStringList("roles")),
-                listOrEmpty(user.getClaimAsStringList("permissions")));
+        return MeResponse.builder()
+                .id(user.getSubject())
+                .name(name(user))
+                .email(user.getEmail())
+                .roles(appRoles(user.getClaimAsStringList("roles")))
+                .permissions(listOrEmpty(user.getClaimAsStringList("permissions")))
+                .build();
     }
 
     private String name(OidcUser user) {

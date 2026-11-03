@@ -31,9 +31,9 @@ public class SecurityConfig {
             NaniAuthProperties auth) throws Exception {
         http
             .authorizeHttpRequests(requests -> requests
-                // Só login, cadastro, sessão e a documentação são públicos. O resto exige sessão (401 sem ela).
+                // Públicos: login, cadastro, sessão, busca de CEP e a documentação. O resto exige sessão (401 sem ela).
                 // Rota que não existe no BFF nunca chega à commerce-api (401 sem sessão, 404 com sessão).
-                .requestMatchers("/actuator/health", "/api/auth/**").permitAll()
+                .requestMatchers("/actuator/health", "/api/auth/**", "/api/cep/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/v3/api-docs.yaml", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated())
             .oauth2Login(login -> login

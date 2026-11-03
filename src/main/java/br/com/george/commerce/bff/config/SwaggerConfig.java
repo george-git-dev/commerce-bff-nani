@@ -58,7 +58,7 @@ public class SwaggerConfig {
                 responses.addApiResponse("302", new ApiResponse().description("Vai para a tela do Keycloak"));
                 return;
             }
-            if (!path.startsWith("/api/auth/")) {
+            if (!path.startsWith("/api/auth/") && !path.startsWith("/api/cep/")) {
                 responses.addApiResponse("401", new ApiResponse().description("Sem sessão (code SESSION_EXPIRED)"));
             }
             responses.addApiResponse("502", new ApiResponse()

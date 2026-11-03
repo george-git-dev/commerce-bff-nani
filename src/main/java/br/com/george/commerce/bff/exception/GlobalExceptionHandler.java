@@ -1,9 +1,11 @@
 package br.com.george.commerce.bff.exception;
 
+import feign.FeignException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import lombok.extern.slf4j.Slf4j;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -15,8 +17,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -25,24 +25,38 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
  * português). Os da API passam como vieram; aqui só se cria resposta para os erros do próprio BFF.
  */
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     static final String CODE = "code";
     static final String TRY_AGAIN = "Não conseguimos concluir agora. Tente de novo em alguns instantes.";
 
+    /** Regra do próprio BFF (ex.: CEP inválido ou não encontrado). */
+    @ExceptionHandler(BusinessException.class)
+    public ProblemDetail handleBusiness(BusinessException ex) {
+        return problem(ex.getStatus(), ex.getCode(), ex.getMessage());
+    }
+
     /**
      * Erro da commerce-api (regra, validação, não encontrado…): passa para o front EXATAMENTE como
      * veio — mesmo status, mesmo corpo (code + detail). O BFF não reescreve nem engole.
+     * Sem resposta (fora do ar, lenta demais) ou resposta ilegível: 502 com a frase fixa.
      */
-    @ExceptionHandler(RestClientResponseException.class)
-    public ResponseEntity<byte[]> handleApiError(RestClientResponseException ex) {
-        HttpHeaders apiHeaders = ex.getResponseHeaders();
-        MediaType type = apiHeaders == null ? null : apiHeaders.getContentType();
-        return ResponseEntity.status(ex.getStatusCode())
-                .contentType(type == null ? MediaType.APPLICATION_PROBLEM_JSON : type)
-                .body(ex.getResponseBodyAsByteArray());
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<?> handleApiError(FeignException ex) {
+        if (ex.status() < 400) {
+            log.warn("commerce-api não respondeu: {}", ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                    .body(problem(HttpStatus.BAD_GATEWAY, "SERVICE_UNAVAILABLE", TRY_AGAIN));
+        }
+        return ResponseEntity.status(ex.status())
+                .contentType(contentType(ex))
+                .body(ex.contentUTF8().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static MediaType contentType(FeignException ex) {
+        Collection<String> types = ex.responseHeaders().getOrDefault(HttpHeaders.CONTENT_TYPE, java.util.List.of());
+        return types.isEmpty() ? MediaType.APPLICATION_PROBLEM_JSON : MediaType.parseMediaType(types.iterator().next());
     }
 
     /**
@@ -62,13 +76,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             return problem(HttpStatus.UNAUTHORIZED, "SESSION_EXPIRED", "Sua sessão expirou. Entre de novo para continuar.");
         }
         log.warn("Falha ao renovar o token no Keycloak: {}", reason);
-        return problem(HttpStatus.BAD_GATEWAY, "SERVICE_UNAVAILABLE", TRY_AGAIN);
-    }
-
-    /** commerce-api fora do ar ou lenta demais (prazos do RestClient). */
-    @ExceptionHandler(ResourceAccessException.class)
-    public ProblemDetail handleApiUnavailable(ResourceAccessException ex) {
-        log.warn("commerce-api não respondeu: {}", ex.getMessage());
         return problem(HttpStatus.BAD_GATEWAY, "SERVICE_UNAVAILABLE", TRY_AGAIN);
     }
 

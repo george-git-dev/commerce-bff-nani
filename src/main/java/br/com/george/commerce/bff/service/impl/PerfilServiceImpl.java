@@ -30,12 +30,20 @@ public class PerfilServiceImpl implements PerfilService {
 
     @Override
     public PerfilResponse atualizar(OidcUser user, AtualizarPerfilRequest request) {
-        UsuarioApiResponse loja = minhaConta.atualizarPerfil(new AtualizarPerfilApiRequest(request.phone(), request.cpf()));
+        UsuarioApiResponse loja = minhaConta.atualizarPerfil(AtualizarPerfilApiRequest.builder()
+                .phone(request.phone())
+                .cpf(request.cpf())
+                .build());
         return juntar(user, loja);
     }
 
     private PerfilResponse juntar(OidcUser user, UsuarioApiResponse loja) {
         MeResponse identidade = meMapper.toResponse(user);
-        return new PerfilResponse(identidade.name(), identidade.email(), loja.cpf(), loja.phone());
+        return PerfilResponse.builder()
+                .name(identidade.name())
+                .email(identidade.email())
+                .cpf(loja.cpf())
+                .phone(loja.phone())
+                .build();
     }
 }
