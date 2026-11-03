@@ -19,6 +19,8 @@ tags:
   description: "Entrar, criar conta e sessão. Sair: POST /api/auth/logout."
 - name: Público - CEP
   description: "Endereço a partir do CEP, para preencher formulários."
+- name: Público - Vitrine
+  description: Produtos publicados da loja.
 - name: Área do Cliente - Minha Conta
   description: Dados da conta do cliente logado.
 paths:
@@ -172,6 +174,61 @@ paths:
                 $ref: "#/components/schemas/CepResponse"
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
+  /api/catalog/products:
+    get:
+      tags:
+      - Público - Vitrine
+      summary: "Buscar produtos (filtros, ordem e página)"
+      description: |-
+        Parâmetros (todos opcionais; listas separadas por vírgula valem como "ou"): category, family,
+        occasion, gender, brand, minPrice, maxPrice, q, inStock, kind, deal, launch, bestSeller, badge,
+        sort (relevance | price_asc | price_desc | best_sellers | newest), page (começa em 0), size (1 a 60).
+      operationId: buscar_1
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CatalogoPaginaResponse"
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
+  /api/catalog/products/{slug}:
+    get:
+      tags:
+      - Público - Vitrine
+      summary: Produto pelo slug
+      operationId: buscarPorSlug
+      parameters:
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CatalogoProdutoResponse"
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
+  /api/catalog/filters:
+    get:
+      tags:
+      - Público - Vitrine
+      summary: Opções de filtro
+      operationId: filtros
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CatalogoFiltrosResponse"
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
   /api/auth/session:
     get:
       tags:
@@ -321,6 +378,146 @@ components:
           type: string
         state:
           type: string
+    CatalogoNotasResponse:
+      type: object
+      properties:
+        top:
+          type: array
+          items:
+            type: string
+        heart:
+          type: array
+          items:
+            type: string
+        base:
+          type: array
+          items:
+            type: string
+    CatalogoPaginaResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogoProdutoResponse"
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        totalItems:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+    CatalogoProdutoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        slug:
+          type: string
+        line:
+          type: string
+        subtitle:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        brandId:
+          type: integer
+          format: int64
+        brandName:
+          type: string
+        category:
+          type: string
+        gender:
+          type: string
+        concentration:
+          type: string
+        families:
+          type: array
+          items:
+            type: string
+        notes:
+          $ref: "#/components/schemas/CatalogoNotasResponse"
+        kitItems:
+          type: array
+          items:
+            type: string
+        occasions:
+          type: array
+          items:
+            type: string
+        launch:
+          type: boolean
+        bestSeller:
+          type: boolean
+        badge:
+          type: string
+        soldCount:
+          type: integer
+          format: int32
+        images:
+          type: array
+          items:
+            type: string
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/CatalogoVarianteResponse"
+    CatalogoVarianteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        volumeMl:
+          type: integer
+          format: int32
+        price:
+          type: number
+        promoPrice:
+          type: number
+        stock:
+          type: integer
+          format: int32
+    CatalogoFiltrosResponse:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            type: string
+        brands:
+          type: array
+          items:
+            type: string
+        families:
+          type: array
+          items:
+            type: string
+        occasions:
+          type: array
+          items:
+            type: string
+        genders:
+          type: array
+          items:
+            type: string
+        badges:
+          type: array
+          items:
+            type: string
+        minPrice:
+          type: number
+        maxPrice:
+          type: number
     MeResponse:
       type: object
       properties:
