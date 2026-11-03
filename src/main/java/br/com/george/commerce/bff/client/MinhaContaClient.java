@@ -2,10 +2,17 @@ package br.com.george.commerce.bff.client;
 
 import br.com.george.commerce.bff.config.CommerceApiFeignConfig;
 import br.com.george.commerce.bff.dto.AtualizarPerfilApiRequest;
+import br.com.george.commerce.bff.dto.EnderecoApiRequest;
+import br.com.george.commerce.bff.dto.EnderecoApiResponse;
 import br.com.george.commerce.bff.dto.UsuarioApiResponse;
+import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 /**
@@ -23,4 +30,17 @@ public interface MinhaContaClient {
     /** {@code PATCH /me}: celular e CPF (o CPF só uma vez). */
     @PatchMapping("/me")
     UsuarioApiResponse atualizarPerfil(@RequestBody AtualizarPerfilApiRequest body);
+
+    /** {@code GET /me/addresses}: principal primeiro. */
+    @GetMapping("/me/addresses")
+    List<EnderecoApiResponse> listarEnderecos();
+
+    @PostMapping("/me/addresses")
+    EnderecoApiResponse cadastrarEndereco(@RequestBody EnderecoApiRequest body);
+
+    @PutMapping("/me/addresses/{id}")
+    EnderecoApiResponse atualizarEndereco(@PathVariable("id") Long id, @RequestBody EnderecoApiRequest body);
+
+    @DeleteMapping("/me/addresses/{id}")
+    void removerEndereco(@PathVariable("id") Long id);
 }

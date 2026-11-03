@@ -13,6 +13,8 @@ servers:
 security:
 - sessao: []
 tags:
+- name: Área do Cliente - Endereços
+  description: Endereços salvos do cliente logado.
 - name: Público - Autenticação
   description: "Entrar, criar conta e sessão. Sair: POST /api/auth/logout."
 - name: Público - CEP
@@ -20,6 +22,96 @@ tags:
 - name: Área do Cliente - Minha Conta
   description: Dados da conta do cliente logado.
 paths:
+  /api/me/addresses/{id}:
+    put:
+      tags:
+      - Área do Cliente - Endereços
+      summary: Atualizar endereço
+      operationId: atualizar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnderecoRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EnderecoResponse"
+        "401":
+          description: Sem sessão (code SESSION_EXPIRED)
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
+    delete:
+      tags:
+      - Área do Cliente - Endereços
+      summary: Remover endereço
+      operationId: remover
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Sem sessão (code SESSION_EXPIRED)
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
+  /api/me/addresses:
+    get:
+      tags:
+      - Área do Cliente - Endereços
+      summary: Listar meus endereços
+      operationId: listar
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EnderecoResponse"
+        "401":
+          description: Sem sessão (code SESSION_EXPIRED)
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
+    post:
+      tags:
+      - Área do Cliente - Endereços
+      summary: Cadastrar endereço
+      operationId: cadastrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnderecoRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/EnderecoResponse"
+        "401":
+          description: Sem sessão (code SESSION_EXPIRED)
+        "502":
+          description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
   /api/me/profile:
     get:
       tags:
@@ -41,7 +133,7 @@ paths:
       tags:
       - Área do Cliente - Minha Conta
       summary: Salvar celular e CPF
-      operationId: atualizar
+      operationId: atualizar_1
       requestBody:
         content:
           application/json:
@@ -157,6 +249,47 @@ paths:
           description: Vai para a tela do Keycloak
 components:
   schemas:
+    EnderecoRequest:
+      type: object
+      properties:
+        cep:
+          type: string
+        street:
+          type: string
+        number:
+          type: string
+        complement:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        isDefault:
+          type: boolean
+    EnderecoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        cep:
+          type: string
+        street:
+          type: string
+        number:
+          type: string
+        complement:
+          type: string
+        district:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        isDefault:
+          type: boolean
     AtualizarPerfilRequest:
       type: object
       properties:
