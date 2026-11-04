@@ -20,10 +20,10 @@ O site acessa o BFF pelo proxy do `ng serve` (tudo em `http://localhost:4200`, c
 
 | Rota | O que faz |
 |---|---|
-| `GET /api/auth/login?returnTo=/caminho` | Entrar: vai para a tela de login da Nani e volta para `/caminho` |
-| `GET /api/auth/register?returnTo=/caminho` | Criar conta: abre direto o cadastro |
-| `POST /api/auth/logout` (com cabeçalho CSRF) | Sair: apaga a sessão e devolve `{ "redirectUrl": ... }` para sair também do Keycloak |
-| `GET /api/auth/session` | Quem está logado: `{authenticated, user}`, sempre 200 |
+| `GET /bff/auth/login?returnTo=/caminho` | Entrar: vai para a tela de login da Nani e volta para `/caminho` |
+| `GET /bff/auth/register?returnTo=/caminho` | Criar conta: abre direto o cadastro |
+| `POST /bff/auth/logout` (com cabeçalho CSRF) | Sair: apaga a sessão e devolve `{ "redirectUrl": ... }` para sair também do Keycloak |
+| `GET /bff/auth/session` | Quem está logado: `{authenticated, user}`, sempre 200 |
 | `GET /actuator/health` | Saúde |
 
 ## Testes

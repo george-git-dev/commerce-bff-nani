@@ -38,7 +38,7 @@ class BffSecurityIntegrationTest {
     @Test
     void sessionShouldAnswer200WithoutUserWhenNobodyIsLoggedIn() throws Exception {
         // Visitante anônimo não é erro: 200, sem cache e já com o cookie do CSRF para o "Sair" depois.
-        mvc.perform(get("/api/auth/session"))
+        mvc.perform(get("/bff/auth/session"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.authenticated").value(false))
                 .andExpect(jsonPath("$.user").value(org.hamcrest.Matchers.nullValue()))
@@ -48,7 +48,7 @@ class BffSecurityIntegrationTest {
 
     @Test
     void shouldReturnNameRolesAndPermissionsOfTheLoggedUser() throws Exception {
-        mvc.perform(get("/api/auth/session").with(oidcLogin().idToken(token -> token
+        mvc.perform(get("/bff/auth/session").with(oidcLogin().idToken(token -> token
                         .subject("user-123")
                         .claim("given_name", "Ana")
                         .claim("family_name", "Souza")
@@ -67,8 +67,8 @@ class BffSecurityIntegrationTest {
 
     @Test
     void undeclaredRoutesShouldNeverReachTheApi() throws Exception {
-        mvc.perform(get("/api/products")).andExpect(status().isUnauthorized());
-        mvc.perform(get("/api/products").with(oidcLogin()))
+        mvc.perform(get("/bff/products")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/bff/products").with(oidcLogin()))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.detail").value("Não encontramos o que você procurou."));
@@ -79,12 +79,12 @@ class BffSecurityIntegrationTest {
         mvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.info.title").value("BFF da Nani Perfumes"))
-                .andExpect(jsonPath("$.paths['/api/auth/session']").exists());
+                .andExpect(jsonPath("$.paths['/bff/auth/session']").exists());
     }
 
     @Test
     void loginShouldRememberWhereToReturnAndGoToKeycloak() throws Exception {
-        mvc.perform(get("/api/auth/login").param("returnTo", "/minha-conta"))
+        mvc.perform(get("/bff/auth/login").param("returnTo", "/minha-conta"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string("Location", "/oauth2/authorization/nani"))
                 .andExpect(request().sessionAttribute("nani.returnTo", "/minha-conta"));
@@ -92,7 +92,7 @@ class BffSecurityIntegrationTest {
 
     @Test
     void changePasswordShouldGoToTheKeycloakPasswordScreenAndComeBack() throws Exception {
-        mvc.perform(get("/api/auth/password").param("returnTo", "/minha-conta/dados"))
+        mvc.perform(get("/bff/auth/password").param("returnTo", "/minha-conta/dados"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string("Location", "/oauth2/authorization/nani?kc_action=UPDATE_PASSWORD"))
                 .andExpect(request().sessionAttribute("nani.returnTo", "/minha-conta/dados"));
@@ -109,7 +109,7 @@ class BffSecurityIntegrationTest {
 
     @Test
     void editNameShouldGoToTheKeycloakProfileScreenAndComeBack() throws Exception {
-        mvc.perform(get("/api/auth/profile").param("returnTo", "/minha-conta/dados"))
+        mvc.perform(get("/bff/auth/profile").param("returnTo", "/minha-conta/dados"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string("Location", "/oauth2/authorization/nani?kc_action=UPDATE_PROFILE"))
                 .andExpect(request().sessionAttribute("nani.returnTo", "/minha-conta/dados"));
@@ -120,7 +120,7 @@ class BffSecurityIntegrationTest {
 
     @Test
     void loginShouldIgnoreReturnToOutsideTheSite() throws Exception {
-        mvc.perform(get("/api/auth/login").param("returnTo", "https://evil.com"))
+        mvc.perform(get("/bff/auth/login").param("returnTo", "https://evil.com"))
                 .andExpect(request().sessionAttribute("nani.returnTo", "/"));
     }
 
@@ -140,13 +140,13 @@ class BffSecurityIntegrationTest {
 
     @Test
     void logoutShouldRequireCsrf() throws Exception {
-        mvc.perform(post("/api/auth/logout").with(oidcLogin())).andExpect(status().isForbidden());
+        mvc.perform(post("/bff/auth/logout").with(oidcLogin())).andExpect(status().isForbidden());
     }
 
     @Test
     void logoutShouldReturnTheKeycloakLogoutAddress() throws Exception {
         // Como o Angular faz: devolve no cabeçalho o mesmo valor do cookie XSRF-TOKEN.
-        mvc.perform(post("/api/auth/logout").with(oidcLogin())
+        mvc.perform(post("/bff/auth/logout").with(oidcLogin())
                         .cookie(new Cookie("XSRF-TOKEN", "token-de-teste"))
                         .header("X-XSRF-TOKEN", "token-de-teste"))
                 .andExpect(status().isOk())

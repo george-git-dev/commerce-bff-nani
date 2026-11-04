@@ -35,7 +35,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * GET /api/me/profile contra uma commerce-api falsa de verdade (servidor HTTP do próprio Java).
+ * GET /bff/me/profile contra uma commerce-api falsa de verdade (servidor HTTP do próprio Java).
  * O token da sessão decide o que a API falsa responde.
  */
 @SpringBootTest(properties = {"nani.auth.client-secret=segredo-de-teste", "spring.cloud.openfeign.client.config.commerce-api.read-timeout=2000"})
@@ -84,13 +84,13 @@ class MeuPerfilIntegrationTest {
 
     @Test
     void withoutSessionShouldAnswer401AndNotCallTheApi() throws Exception {
-        mvc.perform(get("/api/me/profile")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/bff/me/profile")).andExpect(status().isUnauthorized());
         assertThat(LAST.get()).isNull();
     }
 
     @Test
     void shouldJoinKeycloakIdentityWithTheStoreProfile() throws Exception {
-        mvc.perform(asAna(get("/api/me/profile"), "token-da-ana").header("X-Request-Id", "ABC12345"))
+        mvc.perform(asAna(get("/bff/me/profile"), "token-da-ana").header("X-Request-Id", "ABC12345"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Ana Souza"))
                 .andExpect(jsonPath("$.email").value("ana@email.com"))
@@ -104,14 +104,14 @@ class MeuPerfilIntegrationTest {
 
     @Test
     void apiErrorShouldReachTheFrontAsItCame() throws Exception {
-        mvc.perform(asAna(get("/api/me/profile"), "token-bloqueado"))
+        mvc.perform(asAna(get("/bff/me/profile"), "token-bloqueado"))
                 .andExpect(status().isForbidden())
                 .andExpect(content().json("{\"code\":\"ACCOUNT_BLOCKED\",\"detail\":\"Conta bloqueada.\"}"));
     }
 
     @Test
     void slowApiShouldAnswer502WithAFixedMessage() throws Exception {
-        mvc.perform(asAna(get("/api/me/profile"), "token-lento"))
+        mvc.perform(asAna(get("/bff/me/profile"), "token-lento"))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.code").value("SERVICE_UNAVAILABLE"))
                 .andExpect(jsonPath("$.detail").value("Não conseguimos concluir agora. Tente de novo em alguns instantes."));
@@ -119,7 +119,7 @@ class MeuPerfilIntegrationTest {
 
     @Test
     void savingShouldSendPhoneAndCpfToTheApiAndReturnTheUpdatedProfile() throws Exception {
-        mvc.perform(asAna(patch("/api/me/profile"), "token-da-ana").with(csrf())
+        mvc.perform(asAna(patch("/bff/me/profile"), "token-da-ana").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content("{\"phone\":\"11987654321\",\"cpf\":null}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Ana Souza"))
@@ -131,7 +131,7 @@ class MeuPerfilIntegrationTest {
 
     @Test
     void savingShouldRequireCsrf() throws Exception {
-        mvc.perform(asAna(patch("/api/me/profile"), "token-da-ana")
+        mvc.perform(asAna(patch("/bff/me/profile"), "token-da-ana")
                         .contentType(MediaType.APPLICATION_JSON).content("{\"phone\":\"11987654321\"}"))
                 .andExpect(status().isForbidden());
         assertThat(LAST.get()).isNull();
@@ -139,7 +139,7 @@ class MeuPerfilIntegrationTest {
 
     @Test
     void apiRuleErrorOnSaveShouldReachTheFrontAsItCame() throws Exception {
-        mvc.perform(asAna(patch("/api/me/profile"), "token-cpf-em-uso").with(csrf())
+        mvc.perform(asAna(patch("/bff/me/profile"), "token-cpf-em-uso").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content("{\"cpf\":\"39053344705\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CPF_IN_USE"));

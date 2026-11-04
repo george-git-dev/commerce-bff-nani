@@ -29,7 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-/** /api/catalog contra uma commerce-api falsa: pública, sem token e só com os filtros conhecidos. */
+/** /bff/catalog contra uma commerce-api falsa: pública, sem token e só com os filtros conhecidos. */
 @SpringBootTest(properties = "nani.auth.client-secret=segredo-de-teste")
 class CatalogoIntegrationTest {
 
@@ -71,7 +71,7 @@ class CatalogoIntegrationTest {
 
     @Test
     void searchShouldBePublicAndForwardOnlyTheKnownFilters() throws Exception {
-        mvc.perform(get("/api/catalog/products?category=perfume&category=kit&q=oud&sort=price_asc&page=0&hack=1&brand="))
+        mvc.perform(get("/bff/catalog/products?category=perfume&category=kit&q=oud&sort=price_asc&page=0&hack=1&brand="))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].slug").value("lattafa-asad"))
                 .andExpect(jsonPath("$.items[0].variants[0].price").value(299.9))
@@ -88,7 +88,7 @@ class CatalogoIntegrationTest {
 
     @Test
     void productShouldComeAsTheApiSent() throws Exception {
-        mvc.perform(get("/api/catalog/products/lattafa-asad"))
+        mvc.perform(get("/bff/catalog/products/lattafa-asad"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.notes.base[0]").value("Âmbar"))
                 .andExpect(jsonPath("$.variants[0].kind").value("frasco"));
@@ -97,7 +97,7 @@ class CatalogoIntegrationTest {
 
     @Test
     void unknownProductShouldReachTheFrontAsTheApiSent() throws Exception {
-        mvc.perform(get("/api/catalog/products/nao-existe"))
+        mvc.perform(get("/bff/catalog/products/nao-existe"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("PRODUCT_NOT_FOUND"));
     }
@@ -105,7 +105,7 @@ class CatalogoIntegrationTest {
     @Test
     void loggedCustomerTokenShouldNotGoToTheShowcase() throws Exception {
         Instant now = Instant.now();
-        mvc.perform(get("/api/catalog/filters")
+        mvc.perform(get("/bff/catalog/filters")
                         .with(oidcLogin().idToken(token -> token.subject("ana-sub")))
                         .with(oauth2Client("nani").accessToken(new OAuth2AccessToken(
                                 OAuth2AccessToken.TokenType.BEARER, "token-da-ana", now, now.plusSeconds(300)))))

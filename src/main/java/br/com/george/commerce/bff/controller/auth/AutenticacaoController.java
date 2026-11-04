@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Portas de entrada do login para o Angular. Entrar e criar conta são navegação de página
  * inteira: guardam para onde voltar e mandam para o Keycloak. "Sair" é o POST
- * /api/auth/logout do Spring Security. A sessão é perguntada por XHR, sempre com 200.
+ * /bff/auth/logout do Spring Security. A sessão é perguntada por XHR, sempre com 200.
  */
-@Tag(name = "Público - Autenticação", description = "Entrar, criar conta e sessão. Sair: POST /api/auth/logout.")
+@Tag(name = "Público - Autenticação", description = "Entrar, criar conta e sessão. Sair: POST /bff/auth/logout.")
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/bff/auth")
 public class AutenticacaoController {
 
     private static final String AUTHORIZATION = NaniAuthorizationRequestResolver.BASE_URI + "/" + ClientRegistrationConfig.REGISTRATION_ID;
@@ -36,7 +36,7 @@ public class AutenticacaoController {
         this.mapper = mapper;
     }
 
-    /** Entrar: GET /api/auth/login?returnTo=/minha-conta */
+    /** Entrar: GET /bff/auth/login?returnTo=/minha-conta */
     @Operation(summary = "Entrar (vai para o Keycloak e volta para returnTo)")
     @GetMapping("/login")
     public ResponseEntity<Void> login(@RequestParam(required = false) String returnTo, HttpSession session) {

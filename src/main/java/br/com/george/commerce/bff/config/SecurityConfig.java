@@ -33,7 +33,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(requests -> requests
                 // Públicos: login, cadastro, sessão, busca de CEP, vitrine e a documentação. O resto exige sessão (401 sem ela).
                 // Rota que não existe no BFF nunca chega à commerce-api (401 sem sessão, 404 com sessão).
-                .requestMatchers("/actuator/health", "/api/auth/**", "/api/cep/**", "/api/catalog/**").permitAll()
+                .requestMatchers("/actuator/health", "/bff/auth/**", "/bff/cep/**", "/bff/catalog/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/v3/api-docs.yaml", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated())
             .oauth2Login(login -> login
@@ -42,7 +42,7 @@ public class SecurityConfig {
                     .authorizationRequestResolver(new NaniAuthorizationRequestResolver(registrations)))
                 .successHandler(new ReturnToSuccessHandler()))
             .logout(logout -> logout
-                .logoutUrl("/api/auth/logout")
+                .logoutUrl("/bff/auth/logout")
                 .logoutSuccessHandler(new KeycloakLogoutSuccessHandler(
                     auth.endSessionEndpoint(), auth.postLogoutRedirectUri())))
             .csrf(csrf -> csrf
@@ -51,7 +51,7 @@ public class SecurityConfig {
             .exceptionHandling(errors -> errors
                 .defaultAuthenticationEntryPointFor(
                     new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                    PathPatternRequestMatcher.withDefaults().matcher("/api/**")));
+                    PathPatternRequestMatcher.withDefaults().matcher("/bff/**")));
         return http.build();
     }
 }

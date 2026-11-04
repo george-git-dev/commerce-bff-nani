@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
 
-/** Usuário do Keycloak (claims do ID token / userinfo) → resposta do /api/me. */
+/** Usuário do Keycloak (claims do ID token / userinfo) → resposta do /bff/me. */
 @Component
 public class MeMapper {
 

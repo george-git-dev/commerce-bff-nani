@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** Pública: a vitrine é a mesma para visitante e cliente logado. */
 @Tag(name = "Público - Vitrine", description = "Produtos publicados da loja.")
 @RestController
-@RequestMapping("/api/catalog")
+@RequestMapping("/bff/catalog")
 public class CatalogoController {
 
     private final CatalogoService catalogoService;

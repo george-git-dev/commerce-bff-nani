@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** Pública: a calculadora de frete do carrinho funciona sem login. CEP é dado público. */
 @Tag(name = "Público - CEP", description = "Endereço a partir do CEP, para preencher formulários.")
 @RestController
-@RequestMapping("/api/cep")
+@RequestMapping("/bff/cep")
 public class CepController {
 
     private final CepService cepService;

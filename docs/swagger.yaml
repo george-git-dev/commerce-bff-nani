@@ -15,16 +15,16 @@ security:
 tags:
 - name: Área do Cliente - Endereços
   description: Endereços salvos do cliente logado.
-- name: Público - Autenticação
-  description: "Entrar, criar conta e sessão. Sair: POST /api/auth/logout."
 - name: Público - CEP
   description: "Endereço a partir do CEP, para preencher formulários."
 - name: Público - Vitrine
   description: Produtos publicados da loja.
 - name: Área do Cliente - Minha Conta
   description: Dados da conta do cliente logado.
+- name: Público - Autenticação
+  description: "Entrar, criar conta e sessão. Sair: POST /bff/auth/logout."
 paths:
-  /api/me/addresses/{id}:
+  /bff/me/addresses/{id}:
     put:
       tags:
       - Área do Cliente - Endereços
@@ -73,7 +73,7 @@ paths:
           description: Sem sessão (code SESSION_EXPIRED)
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
-  /api/me/addresses:
+  /bff/me/addresses:
     get:
       tags:
       - Área do Cliente - Endereços
@@ -114,7 +114,7 @@ paths:
           description: Sem sessão (code SESSION_EXPIRED)
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
-  /api/me/profile:
+  /bff/me/profile:
     get:
       tags:
       - Área do Cliente - Minha Conta
@@ -153,7 +153,7 @@ paths:
           description: Sem sessão (code SESSION_EXPIRED)
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
-  /api/cep/{cep}:
+  /bff/cep/{cep}:
     get:
       tags:
       - Público - CEP
@@ -174,7 +174,7 @@ paths:
                 $ref: "#/components/schemas/CepResponse"
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
-  /api/catalog/products:
+  /bff/catalog/products:
     get:
       tags:
       - Público - Vitrine
@@ -193,7 +193,7 @@ paths:
                 $ref: "#/components/schemas/CatalogoPaginaResponse"
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
-  /api/catalog/products/{slug}:
+  /bff/catalog/products/{slug}:
     get:
       tags:
       - Público - Vitrine
@@ -214,7 +214,7 @@ paths:
                 $ref: "#/components/schemas/CatalogoProdutoResponse"
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
-  /api/catalog/filters:
+  /bff/catalog/filters:
     get:
       tags:
       - Público - Vitrine
@@ -229,7 +229,7 @@ paths:
                 $ref: "#/components/schemas/CatalogoFiltrosResponse"
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
-  /api/auth/session:
+  /bff/auth/session:
     get:
       tags:
       - Público - Autenticação
@@ -244,7 +244,7 @@ paths:
                 $ref: "#/components/schemas/SessaoResponse"
         "502":
           description: commerce-api fora do ar ou lenta (code SERVICE_UNAVAILABLE)
-  /api/auth/register:
+  /bff/auth/register:
     get:
       tags:
       - Público - Autenticação
@@ -259,7 +259,7 @@ paths:
       responses:
         "302":
           description: Vai para a tela do Keycloak
-  /api/auth/profile:
+  /bff/auth/profile:
     get:
       tags:
       - Público - Autenticação
@@ -274,7 +274,7 @@ paths:
       responses:
         "302":
           description: Vai para a tela do Keycloak
-  /api/auth/password:
+  /bff/auth/password:
     get:
       tags:
       - Público - Autenticação
@@ -289,7 +289,7 @@ paths:
       responses:
         "302":
           description: Vai para a tela do Keycloak
-  /api/auth/login:
+  /bff/auth/login:
     get:
       tags:
       - Público - Autenticação

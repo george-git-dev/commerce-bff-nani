@@ -34,7 +34,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-/** /api/me/addresses contra uma commerce-api falsa: traduz os nomes e repassa os erros como vieram. */
+/** /bff/me/addresses contra uma commerce-api falsa: traduz os nomes e repassa os erros como vieram. */
 @SpringBootTest(properties = "nani.auth.client-secret=segredo-de-teste")
 class MeusEnderecosIntegrationTest {
 
@@ -79,13 +79,13 @@ class MeusEnderecosIntegrationTest {
 
     @Test
     void withoutSessionShouldAnswer401AndNotCallTheApi() throws Exception {
-        mvc.perform(get("/api/me/addresses")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/bff/me/addresses")).andExpect(status().isUnauthorized());
         assertThat(LAST.get()).isNull();
     }
 
     @Test
     void listShouldComeInTheFrontNamesKeepingTheApiOrder() throws Exception {
-        mvc.perform(asAna(get("/api/me/addresses"), "token-da-ana"))
+        mvc.perform(asAna(get("/bff/me/addresses"), "token-da-ana"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].id").value(7))
@@ -101,7 +101,7 @@ class MeusEnderecosIntegrationTest {
 
     @Test
     void createShouldSendTheApiNamesAndAnswer201() throws Exception {
-        mvc.perform(asAna(post("/api/me/addresses"), "token-da-ana").with(csrf())
+        mvc.perform(asAna(post("/bff/me/addresses"), "token-da-ana").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content(FRONT_BODY))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(7))
@@ -115,13 +115,13 @@ class MeusEnderecosIntegrationTest {
 
     @Test
     void updateAndRemoveShouldReachTheSameAddressInTheApi() throws Exception {
-        mvc.perform(asAna(put("/api/me/addresses/7"), "token-da-ana").with(csrf())
+        mvc.perform(asAna(put("/bff/me/addresses/7"), "token-da-ana").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content(FRONT_BODY))
                 .andExpect(status().isOk());
         assertThat(LAST.get().method()).isEqualTo("PUT");
         assertThat(LAST.get().path()).isEqualTo("/me/addresses/7");
 
-        mvc.perform(asAna(delete("/api/me/addresses/7"), "token-da-ana").with(csrf()))
+        mvc.perform(asAna(delete("/bff/me/addresses/7"), "token-da-ana").with(csrf()))
                 .andExpect(status().isNoContent());
         assertThat(LAST.get().method()).isEqualTo("DELETE");
         assertThat(LAST.get().path()).isEqualTo("/me/addresses/7");
@@ -129,7 +129,7 @@ class MeusEnderecosIntegrationTest {
 
     @Test
     void apiRuleErrorShouldReachTheFrontAsItCame() throws Exception {
-        mvc.perform(asAna(post("/api/me/addresses"), "token-no-limite").with(csrf())
+        mvc.perform(asAna(post("/bff/me/addresses"), "token-no-limite").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content(FRONT_BODY))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("ADDRESS_LIMIT"));
@@ -137,7 +137,7 @@ class MeusEnderecosIntegrationTest {
 
     @Test
     void writingShouldRequireCsrf() throws Exception {
-        mvc.perform(asAna(delete("/api/me/addresses/7"), "token-da-ana")).andExpect(status().isForbidden());
+        mvc.perform(asAna(delete("/bff/me/addresses/7"), "token-da-ana")).andExpect(status().isForbidden());
         assertThat(LAST.get()).isNull();
     }
 

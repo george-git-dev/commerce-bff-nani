@@ -2,7 +2,7 @@ package br.com.george.commerce.bff.dto;
 
 import lombok.Builder;
 /**
- * Resposta de GET /api/auth/session: diz se há alguém logado, sempre com 200.
+ * Resposta de GET /bff/auth/session: diz se há alguém logado, sempre com 200.
  * Visitante anônimo não é erro; 401 fica só para rota protegida sem sessão.
  */
 @Builder

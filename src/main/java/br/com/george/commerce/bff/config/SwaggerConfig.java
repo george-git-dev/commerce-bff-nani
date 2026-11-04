@@ -52,13 +52,13 @@ public class SwaggerConfig {
     OpenApiCustomizer respostasPadrao() {
         return openApi -> openApi.getPaths().forEach((path, item) -> item.readOperations().forEach(operation -> {
             ApiResponses responses = operation.getResponses();
-            if (path.equals("/api/auth/login") || path.equals("/api/auth/register") || path.equals("/api/auth/password")
-                    || path.equals("/api/auth/profile")) {
+            if (path.equals("/bff/auth/login") || path.equals("/bff/auth/register") || path.equals("/bff/auth/password")
+                    || path.equals("/bff/auth/profile")) {
                 responses.clear();
                 responses.addApiResponse("302", new ApiResponse().description("Vai para a tela do Keycloak"));
                 return;
             }
-            if (!path.startsWith("/api/auth/") && !path.startsWith("/api/cep/") && !path.startsWith("/api/catalog/")) {
+            if (!path.startsWith("/bff/auth/") && !path.startsWith("/bff/cep/") && !path.startsWith("/bff/catalog/")) {
                 responses.addApiResponse("401", new ApiResponse().description("Sem sessão (code SESSION_EXPIRED)"));
             }
             responses.addApiResponse("502", new ApiResponse()

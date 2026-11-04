@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Área do Cliente - Endereços", description = "Endereços salvos do cliente logado.")
 @RestController
-@RequestMapping("/api/me/addresses")
+@RequestMapping("/bff/me/addresses")
 public class MeusEnderecosController {
 
     private final EnderecoService enderecoService;

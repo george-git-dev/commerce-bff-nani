@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Área do Cliente - Minha Conta", description = "Dados da conta do cliente logado.")
 @RestController
-@RequestMapping("/api/me")
+@RequestMapping("/bff/me")
 public class MeuPerfilController {
 
     private final PerfilService perfilService;
